@@ -9,14 +9,14 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=autocore
 PKG_VERSION:=1
-PKG_RELEASE:=33
+PKG_RELEASE:=35
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/autocore-arm
   TITLE:=Arm auto core loadbalance script.
   MAINTAINER:=CN_SZTL
-  DEPENDS:=@(TARGET_bcm27xx||TARGET_ipq806x)
+  DEPENDS:=@(arm||aarch64) +lm-sensors
 endef
 
 define Package/autocore-x86
@@ -33,16 +33,23 @@ define Package/autocore-x86/description
   A usb autoconfig hotplug script.
 endef
 
+define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+	$(CP) ./files/* $(PKG_BUILD_DIR)/
+	touch $(PKG_BUILD_DIR)/arm/$(BOARD).sh
+	sh $(PKG_BUILD_DIR)/arm/$(BOARD).sh
+endef
+
 define Build/Compile
 endef
 
 define Package/autocore-arm/install
 	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/arm/index.htm $(1)/etc/index.htm
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/arm/index.htm $(1)/etc/index.htm
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/arm/090-cover-index_htm $(1)/etc/uci-defaults/090-cover-index_htm
 	$(INSTALL_DIR) $(1)/sbin
-	$(CP) ./files/arm/sbin/* $(1)/sbin
+	$(CP) $(PKG_BUILD_DIR)/arm/sbin/* $(1)/sbin
 endef
 
 define Package/autocore-x86/install
